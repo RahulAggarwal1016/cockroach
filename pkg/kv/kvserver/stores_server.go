@@ -12,6 +12,7 @@ package kvserver
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/cockroachdb/cockroach/pkg/roachpb"
@@ -149,6 +150,30 @@ func (is Server) CompactEngineSpan(
 	err := is.execStoreCommand(ctx, req.StoreRequestHeader,
 		func(ctx context.Context, s *Store) error {
 			return s.TODOEngine().CompactRange(req.Span.Key, req.Span.EndKey)
+		})
+	return resp, err
+}
+
+// GetTableMetrics implements PerStoreServer. It retrieves metrics
+// SSTables for a given node and store id.
+func (is Server) GetTableMetrics(
+	ctx context.Context, req *GetTableMetricsRequest,
+) (*GetTableMetricsResponse, error) {
+	resp := &GetTableMetricsResponse{}
+	err := is.execStoreCommand(ctx, req.StoreRequestHeader,
+		func(ctx context.Context, s *Store) error {
+
+			fmt.Println("START", req.Span.Key)
+			fmt.Println("END", req.Span.EndKey)
+
+			metricsInfo, err := s.TODOEngine().GetTableMetrics(req.Span.Key, req.Span.EndKey)
+
+			if err != nil {
+				return err
+			}
+
+			resp.TableMetrics = metricsInfo
+			return nil
 		})
 	return resp, err
 }
